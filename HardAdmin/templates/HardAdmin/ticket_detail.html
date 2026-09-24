@@ -1,0 +1,146 @@
+{% extends "HardAdmin/base.html" %}
+{% block title %}Заявка #{{ ticket.pk }} — {{ ticket.subject }}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-start mb-4">
+    <div>
+        <h2 class="fw-bold">{{ ticket.subject }}</h2>
+        <span class="badge bg-secondary">#{{ ticket.pk }}</span>
+    </div>
+    <div class="text-end">
+        <span class="badge bg-light border text-dark me-2" title="Дата создания">
+            {{ ticket.created_at|date:"d.m.Y H:i" }}
+        </span>
+        {% if ticket.closed_at %}
+            <span class="badge bg-light border text-danger" title="Дата закрытия">
+                {{ ticket.closed_at|date:"d.m.Y H:i" }}
+            </span>
+        {% endif %}
+    </div>
+</div>
+<div class="card shadow-sm border-0">
+    <div class="card-header bg-white py-3">
+        <h5 class="mb-0 text-muted small">Детали заявки</h5>
+    </div>
+    <div class="card-body p-4">
+        <div class="row g-4">
+            <div class="col-md-3">
+                <p class="text-muted small mb-1">Тип</p>
+                <div class="fw-semibold">{{ ticket.get_ticket_type_display }}</div>
+            </div>
+            <div class="col-md-3">
+                <p class="text-muted small mb-1">Приоритет</p>
+                <div>
+                    {% if ticket.priority == 'low' %}
+                        <span class="badge bg-secondary">Низкий</span>
+                    {% elif ticket.priority == 'medium' %}
+                        <span class="badge bg-warning text-dark">Средний</span>
+                    {% else %}
+                        <span class="badge bg-danger">Высокий</span>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="col-md-3">
+                <p class="text-muted small mb-1">Статус</p>
+                <div>
+                    {% if ticket.status == 'new' %}
+                        <span class="badge bg-primary">Новая</span>
+                    {% elif ticket.status == 'in_progress' %}
+                        <span class="badge bg-success">В работе</span>
+                    {% elif ticket.status == 'resolved' %}
+                        <span class="badge bg-light border text-dark">Решена</span>
+                    {% elif ticket.status == 'closed' %}
+                        <span class="badge bg-dark">Закрыта</span>
+                    {% else %}
+                        <span class="badge bg-info text-dark">{{ ticket.get_status_display }}</span>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="col-md-3">
+                <p class="text-muted small mb-1">Оборудование</p>
+                <div class="fw-semibold">
+                    {% if ticket.asset %}
+                        {{ ticket.asset.name }} <small class="text-muted">({{ ticket.asset.inventory_number }})</small>
+                    {% else %}
+                        <span class="text-muted">Не указано</span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <hr class="my-4">
+
+        <div class="row g-4">
+            <div class="col-md-6">
+                <p class="text-muted small mb-1">Заявитель</p>
+                <div class="d-flex align-items-center">
+                    <span class="me-2">👤</span>
+                    <div>
+                        <div class="fw-semibold">{{ ticket.requester.full_name }}</div>
+                        <small class="text-muted">{{ ticket.requester.department.name }}</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <p class="text-muted small mb-1">Исполнитель</p>
+                <div class="d-flex align-items-center">
+                    {% if ticket.assignee %}
+                        <span class="me-2">🛠</span>
+                        <div>
+                            <div class="fw-semibold">{{ ticket.assignee.full_name }}</div>
+                            <small class="text-muted">{{ ticket.assignee.department.name }}</small>
+                        </div>
+                    {% else %}
+                        <span class="text-muted">Не назначен</span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="card shadow-sm border-0 mb-4">
+    <div class="card-header bg-white py-3">
+        <h5 class="mb-0">Описание проблемы</h5>
+    </div>
+    <div class="card-body p-4">
+        <p class="text-muted">{{ ticket.description }}</p>
+    </div>
+</div>
+{% if ticket.result %}
+<div class="card shadow-sm border-0 mb-4">
+    <div class="card-header bg-white py-3">
+        <h5 class="mb-0 text-success">Результат работ</h5>
+    </div>
+    <div class="card-body p-4">
+        <p class="text-dark">{{ ticket.result }}</p>
+    </div>
+</div>
+{% endif %}
+<div class="card shadow-sm border-0">
+    <div class="card-footer bg-white py-4">
+        <div class="d-flex gap-2 flex-wrap">
+            <a href="{% url 'ticket_list' %}" class="btn btn-outline-secondary">
+                ← Назад к списку
+            </a>
+
+            {% if user.employee.is_helpdesk_member %}
+                {% if ticket.status == 'new' %}
+                    <a href="{% url 'ticket_assign' ticket.pk %}" class="btn btn-primary">
+                        Взять в работу
+                    </a>
+                {% elif ticket.status == 'in_progress' %}
+                    <a href="{% url 'ticket_resolve' ticket.pk %}" class="btn btn-success">
+                        Завершить работу
+                    </a>
+                {% endif %}
+            {% endif %}
+
+            {% if user.employee.is_helpdesk_member or user.employee == ticket.requester %}
+                <a href="{% url 'ticket_delete' ticket.pk %}" class="btn btn-outline-danger">
+                    Удалить заявку
+                </a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

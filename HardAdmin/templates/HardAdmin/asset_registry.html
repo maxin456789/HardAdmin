@@ -1,0 +1,125 @@
+{% extends "HardAdmin/base.html" %}
+{% block title %}Реестр оборудования — HardAdmin{% endblock %}
+{% block content %}
+<style>
+    tbody tr { cursor: pointer; }
+</style>
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="mb-0">Реестр оборудования</h2>
+    <span class="badge bg-secondary fs-6">Всего: {{ page_obj.paginator.count }}</span>
+</div>
+
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-3 align-items-end">
+            <div class="col-md-3">
+                <label class="form-label">Поиск</label>
+                <input type="text" name="q" value="{{ q }}" class="form-control"
+                       placeholder="Инв. номер, название, серийный">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Статус</label>
+                <select name="status" class="form-select">
+                    <option value="">— Все —</option>
+                    {% for value, label in status_choices %}
+                    <option value="{{ value }}" {% if value == current_status %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Тип</label>
+                <select name="type" class="form-select">
+                    <option value="">— Все —</option>
+                    {% for t in asset_types %}
+                    <option value="{{ t.pk }}" {% if t.pk|stringformat:"s" == current_type %}selected{% endif %}>{{ t.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Отдел</label>
+                <select name="department" class="form-select">
+                    <option value="">— Все —</option>
+                    {% for d in departments %}
+                    <option value="{{ d.pk }}" {% if d.pk|stringformat:"s" == current_department %}selected{% endif %}>{{ d.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <button type="submit" class="btn btn-primary w-100">Найти</button>
+                <a href="{% url 'asset_registry' %}" class="btn btn-outline-secondary w-100 mt-2">Сбросить</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Инв. номер</th>
+                        <th>Название</th>
+                        <th>Тип</th>
+                        <th>Статус</th>
+                        <th>Сотрудник</th>
+                        <th>Отдел</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for asset in assets %}
+                    <tr class="position-relative">
+                        <td>
+                            <a href="{% url 'asset_detail' asset.pk %}"
+                               class="stretched-link fw-semibold">{{ asset.inventory_number }}</a>
+                        </td>
+                        <td>{{ asset.name|default:"—" }}</td>
+                        <td>{{ asset.asset_type.name }}</td>
+                        <td>
+                            <span class="badge {% if asset.status == 'storage' %}bg-secondary{% elif asset.status == 'in_use' %}bg-success{% elif asset.status == 'in_repair' %}bg-warning text-dark{% elif asset.status == 'broken' %}bg-danger{% else %}bg-dark{% endif %}">
+                                {{ asset.get_status_display }}
+                            </span>
+                        </td>
+                        <td>
+                            {% if asset.assigned_to %}
+                                {{ asset.assigned_to.full_name }}
+                            {% else %}
+                                <span class="text-muted">Склад</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if asset.assigned_to and asset.assigned_to.department %}
+                                {{ asset.assigned_to.department.name }}
+                            {% else %}—{% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="6" class="text-center text-muted py-4">Ничего не найдено</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+{% if is_paginated %}
+<nav class="mt-3">
+    <ul class="pagination justify-content-center">
+        {% if page_obj.has_previous %}
+        <li class="page-item">
+            <a class="page-link" href="?page={{ page_obj.previous_page_number }}&q={{ q }}&status={{ current_status }}&type={{ current_type }}&department={{ current_department }}">Назад</a>
+        </li>
+        {% endif %}
+        <li class="page-item disabled">
+            <span class="page-link">{{ page_obj.number }} из {{ page_obj.paginator.num_pages }}</span>
+        </li>
+        {% if page_obj.has_next %}
+        <li class="page-item">
+            <a class="page-link" href="?page={{ page_obj.next_page_number }}&q={{ q }}&status={{ current_status }}&type={{ current_type }}&department={{ current_department }}">Вперёд</a>
+        </li>
+        {% endif %}
+    </ul>
+</nav>
+{% endif %}
+{% endblock %}

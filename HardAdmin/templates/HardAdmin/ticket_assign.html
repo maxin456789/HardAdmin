@@ -1,0 +1,70 @@
+{% extends "HardAdmin/base.html" %}
+{% block title %}Взять в работу — Заявка #{{ object.pk }}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="fw-bold">Взять заявку #{{ object.pk }} в работу</h2>
+        <span class="badge bg-secondary">{{ object.get_ticket_type_display }}</span>
+        <span class="badge bg-warning text-dark">Приоритет: {{ object.get_priority_display }}</span>
+    </div>
+    <a href="{% url 'helpdesk_list' %}" class="btn btn-outline-secondary">Отмена</a>
+</div>
+
+<div class="card shadow-sm border-0">
+    <div class="card-header bg-light">
+        <h5 class="mb-0">Информация о заявке</h5>
+    </div>
+    <div class="card-body">
+        <div class="row g-3">
+            <div class="col-md-6">
+                <p><strong>Тема:</strong> {{ object.subject }}</p>
+                <p><strong>Заявитель:</strong> {{ object.requester.full_name }} ({{ object.requester.department }})</p>
+            </div>
+            <div class="col-md-6">
+                <p><strong>Дата создания:</strong> {{ object.created_at|date:"d.m.Y H:i" }}</p>
+                {% if object.asset %}
+                <p><strong>Оборудование:</strong> {{ object.asset.name }} ({{ object.asset.inventory_number }})</p>
+                {% endif %}
+            </div>
+        </div>
+        <hr>
+        <p><strong>Описание проблемы:</strong></p>
+        <div class="alert bg-light border rounded p-3">
+            {{ object.description|linebreaks }}
+        </div>
+    </div>
+</div>
+
+<div class="card shadow-sm border-0">
+    <div class="card-header bg-primary text-white">
+        <h5 class="mb-0">Подтверждение взятия в работу</h5>
+    </div>
+    <div class="card-body">
+        <form method="post">
+            {% csrf_token %}
+
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label for="{{ form.priority.id_for_label }}" class="form-label">Изменить приоритет (если нужно)</label>
+                    {{ form.priority }}
+                    {{ form.priority.errors }}
+                </div>
+            </div>
+
+            <div class="mb-3 mt-4">
+                <label for="{{ form.comment.id_for_label }}" class="form-label">Комментарий</label>
+                <textarea class="form-control" id="{{ form.comment.id_for_label }}" name="{{ form.comment.name }}" rows="3" placeholder="Например: «Приступаю к диагностике»"></textarea>
+                {{ form.comment.errors }}
+            </div>
+
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-primary btn-lg">
+                    <i class="bi bi-check-circle"></i> Подтвердить: Взять в работу
+                </button>
+                <a href="{% url 'helpdesk_list' %}" class="btn btn-secondary">Отмена</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

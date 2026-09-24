@@ -1,0 +1,77 @@
+{% extends "HardAdmin/base.html" %}
+{% block title %}Мой профиль — HardAdmin{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="fw-bold">Мой профиль</h2>
+</div>
+
+<div class="card shadow-sm border-0">
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-6">
+                <ul class="list-unstyled">
+                    <li class="mb-2"><strong>ФИО:</strong> {{ employee.full_name|default:"Не указано" }}</li>
+                    <li class="mb-2"><strong>Должность:</strong> {{ employee.position|default:"—" }}</li>
+                    <li class="mb-2"><strong>Отдел:</strong> {{ employee.department|default:"—" }}</li>
+                    <li class="mb-2"><strong>Телефон (внутр.):</strong> {{ employee.phone_internal|default:"—" }}</li>
+                    <li class="mb-2"><strong>Телефон (моб.):</strong> {{ employee.phone_mobile|default:"—" }}</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<h3 class="mt-4 mb-3">Оборудование на учёте</h3>
+
+{% if assets %}
+<div class="table-responsive bg-white shadow-sm rounded border">
+    <table class="table table-striped table-hover align-middle mb-0">
+        <thead class="table-light">
+            <tr>
+                <th scope="col">Инв. номер</th>
+                <th scope="col">Название</th>
+                <th scope="col">Тип</th>
+                <th scope="col">Гарантия до</th>
+                <th scope="col" class="text-end">Статус</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for asset in assets %}
+            <tr>
+                <td class="fw-bold text-primary">{{ asset.inventory_number }}</td>
+                <td>{{ asset.name }}</td>
+                <td><span class="badge bg-secondary">{{ asset.asset_type.name }}</span></td>
+                <td>
+                    {% if asset.warranty_end_date %}
+                        {{ asset.warranty_end_date|date:"d.m.Y" }}
+                    {% else %}
+                        —
+                    {% endif %}
+                </td>
+                <td class="text-end">
+                    {% if asset.status == 'in_use' %}
+                        <span class="badge bg-success">В работе</span>
+                    {% elif asset.status == 'storage' %}
+                        <span class="badge bg-warning text-dark">На складе</span>
+                    {% else %}
+                        <span class="badge bg-danger">Списан</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="5" class="text-center py-4 text-muted">
+                    На данный момент за вами не числится оборудования.
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<div class="alert alert-info" role="alert">
+    Список оборудования пуст или данные еще не загружены.
+</div>
+{% endif %}
+{% endblock %}

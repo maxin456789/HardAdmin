@@ -1,0 +1,105 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: hardadmin
+      POSTGRES_USER: hardadmin
+      POSTGRES_PASSWORD: hardadmin123
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U hardadmin"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  mailhog:
+    image: mailhog/mailhog
+    ports:
+      - "8025:8025"
+    restart: unless-stopped
+
+  adminer:
+    image: adminer
+    ports:
+      - "8080:8080"
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+
+  web:
+    build: .
+    environment: &django-env
+      DJANGO_DEBUG: "False"
+      DJANGO_SECRET_KEY: "prod-change-me-5d0f4c2a9e8b7c6d5a4f3e2d1c0b9a88"
+      DJANGO_ALLOWED_HOSTS: "localhost 127.0.0.1 web"
+      DB_ENGINE: "postgres"
+      DB_NAME: "hardadmin"
+      DB_USER: "hardadmin"
+      DB_PASSWORD: "hardadmin123"
+      DB_HOST: "db"
+      DB_PORT: "5432"
+      CELERY_BROKER_URL: "redis://redis:6379/0"
+      CELERY_RESULT_BACKEND: "redis://redis:6379/0"
+      EMAIL_BACKEND: "smtp"
+      EMAIL_HOST: "mailhog"
+      EMAIL_PORT: "1025"
+      EMAIL_FROM: "noreply@hardadmin.local"
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      mailhog:
+        condition: service_started
+    restart: unless-stopped
+    command: >
+      sh -c "python manage.py migrate &&
+             python manage.py collectstatic --noinput &&
+             gunicorn config.wsgi:application --bind 0.0.0.0:8000 --workers 2"
+
+  celery_worker:
+    build: .
+    environment: *django-env
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      mailhog:
+        condition: service_started
+    restart: unless-stopped
+    command: >
+      sh -c "python manage.py migrate &&
+             celery -A config worker -l info"
+
+  celery_beat:
+    build: .
+    environment: *django-env
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      mailhog:
+        condition: service_started
+    restart: unless-stopped
+    command: >
+      sh -c "python manage.py migrate &&
+             celery -A config beat -l info"
+
+volumes:
+  pgdata:

@@ -1,0 +1,10 @@
+Django>=5.0,<6.1
+celery>=5.3
+redis>=5.0
+django-celery-beat>=2.6
+psycopg2-binary>=2.9
+gunicorn>=21.2
+whitenoise>=6.5
+pytest>=8.0
+pytest-django>=4.8
+Faker>=24.0

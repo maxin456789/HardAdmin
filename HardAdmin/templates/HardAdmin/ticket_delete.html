@@ -1,0 +1,64 @@
+{% extends "HardAdmin/base.html" %}
+{% load static %}
+
+{% block title %}Подтверждение удаления — Заявка #{{ object.pk }}{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card border-danger shadow-sm">
+                <div class="card-header bg-danger text-white d-flex align-items-center">
+                    <i class="bi bi-exclamation-triangle-fill me-3 fs-3"></i>
+                    <div>
+                        <h4 class="mb-0">Удаление заявки #{{ object.pk }}</h4>
+                        <small class="opacity-75">Это действие нельзя отменить</small>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted">Вы собираетесь окончательно удалить заявку из системы. Пожалуйста, проверьте данные ниже:</p>
+
+                    <div class="alert alert-danger bg-danger-subtle border-danger">
+                        <h5 class="fw-bold text-danger">Тема:</h5>
+                        <p class="mb-0">{{ object.subject }}</p>
+                    </div>
+
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <p><strong>Заявитель:</strong> {{ object.requester.full_name }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>Статус:</strong> <span class="badge bg-{{ object.get_status_badge_class }}">{{ object.get_status_display }}</span></p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>Приоритет:</strong> <span class="badge bg-warning text-dark">{{ object.get_priority_display }}</span></p>
+                        </div>
+                        {% if object.asset %}
+                        <div class="col-md-6">
+                            <p><strong>Оборудование:</strong> {{ object.asset.name }} ({{ object.asset.inventory_number }})</p>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <hr>
+                    <p class="text-danger small">
+                        <i class="bi bi-info-circle"></i> После удаления заявка исчезнет из всех списков, история переписки будет потеряна.
+                    </p>
+
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="d-flex gap-3 mt-4">
+                            <button type="submit" class="btn btn-danger btn-lg px-4">
+                                <i class="bi bi-trash"></i> Да, удалить навсегда
+                            </button>
+                            <a href="{% url 'ticket_detail' object.pk %}" class="btn btn-secondary btn-lg px-4 align-self-center">
+                                <i class="bi bi-arrow-left"></i> Отмена
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

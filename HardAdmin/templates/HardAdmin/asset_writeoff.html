@@ -1,0 +1,83 @@
+{% extends "HardAdmin/base.html" %}
+{% block title %}Списание оборудования — HardAdmin{% endblock %}
+{% block content %}
+<h2>Оформление списания</h2>
+<div class="alert alert-warning">
+    Форма возвращает оборудование на склад.
+    Если нужно пометить как неисправное — закройте заявку без флага работоспособности.
+</div>
+
+<div class="card mb-4">
+    <div class="card-header bg-light">Выберите сотрудника</div>
+    <div class="card-body">
+        <form method="get" class="row g-3 align-items-end">
+            <div class="col-md-4">
+                <label class="form-label">Отдел</label>
+                {{ filter_form.department }}
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">Сотрудник</label>
+                {{ filter_form.employee }}
+            </div>
+            <div class="col-md-4">
+                <button type="submit" class="btn btn-outline-primary w-100">Показать</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% if selected_employee %}
+<div class="card">
+    <div class="card-header bg-light">Вернуть на склад</div>
+    <div class="card-body">
+        <div class="mb-3 p-3 bg-light border rounded">
+            <strong>Сотрудник:</strong> {{ selected_employee.full_name }}
+            <small class="text-muted">
+                ({{ selected_employee.department|default:"Без отдела" }})
+            </small>
+        </div>
+        <form method="post">
+            {% csrf_token %}
+            {% if form.non_field_errors %}
+                <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+            {% endif %}
+            <div class="mb-3">
+                <label class="form-label">Заявка на списание</label>
+                {{ form.ticket }}
+                {% if form.ticket.errors %}
+                    <div class="text-danger">{{ form.ticket.errors }}</div>
+                {% endif %}
+                {% if not form.ticket.field.queryset.exists %}
+                    <small class="text-warning">
+                        У сотрудника нет открытых заявок на списание.
+                    </small>
+                {% endif %}
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Оборудование (в использовании)</label>
+                {{ form.asset }}
+                {% if form.asset.errors %}
+                    <div class="text-danger">{{ form.asset.errors }}</div>
+                {% endif %}
+                {% if not form.asset.field.queryset.exists %}
+                    <small class="text-warning">У сотрудника нет оборудования в работе.</small>
+                {% endif %}
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Причина списания</label>
+                {{ form.reason }}
+                {% if form.reason.errors %}
+                    <div class="text-danger">{{ form.reason.errors }}</div>
+                {% endif %}
+            </div>
+            <button type="submit" class="btn btn-danger">Вернуть на склад</button>
+            <a href="{% url 'asset_writeoff' %}" class="btn btn-outline-secondary">Сбросить</a>
+        </form>
+    </div>
+</div>
+{% else %}
+<div class="alert alert-info">
+    Выберите отдел, нажмите «Показать», затем выберите сотрудника и снова «Показать».
+</div>
+{% endif %}
+{% endblock %}

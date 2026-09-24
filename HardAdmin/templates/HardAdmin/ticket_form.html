@@ -1,0 +1,33 @@
+{% extends "HardAdmin/base.html" %}
+{% block title %}Новая заявка — HardAdmin{% endblock %}
+{% block content %}
+<h2>Новая заявка</h2>
+<form method="post" class="col-md-8">
+    {% csrf_token %}
+    {% if form.non_field_errors %}
+        <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+    {% endif %}
+    <div class="mb-3">
+        <label class="form-label">Тип заявки</label>
+        {{ form.ticket_type }}
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Приоритет</label>
+        {{ form.priority }}
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Тема</label>
+        {{ form.subject }}
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Описание</label>
+        {{ form.description }}
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Оборудование</label>
+        {{ form.asset }}
+        <small class="text-muted">Для «Выдачи» оставьте пустым. Для «Неисправности» или «Списания» выберите своё.</small>
+    </div>
+    <button type="submit" class="btn btn-primary">Создать заявку</button>
+</form>
+{% endblock %}

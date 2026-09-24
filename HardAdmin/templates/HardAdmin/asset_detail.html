@@ -1,0 +1,83 @@
+{% extends "HardAdmin/base.html" %}
+{% block title %}{{ asset.inventory_number }} — HardAdmin{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="mb-0">{{ asset.inventory_number }} — {{ asset.name|default:asset.asset_type.name }}</h2>
+    <a href="{% url 'asset_registry' %}" class="btn btn-outline-secondary">← К реестру</a>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-6">
+        <div class="card h-100">
+            <div class="card-header bg-light">Карточка оборудования</div>
+            <div class="card-body">
+                <table class="table mb-0">
+                    <tr>
+                        <th style="width: 40%">Статус</th>
+                        <td>
+                            <span class="badge {% if asset.status == 'storage' %}bg-secondary{% elif asset.status == 'in_use' %}bg-success{% elif asset.status == 'in_repair' %}bg-warning text-dark{% elif asset.status == 'broken' %}bg-danger{% else %}bg-dark{% endif %}">
+                                {{ asset.get_status_display }}
+                            </span>
+                        </td>
+                    </tr>
+                    <tr><th>Тип</th><td>{{ asset.asset_type.name }} ({{ asset.asset_type.get_category_display }})</td></tr>
+                    <tr><th>Серийный номер</th><td>{{ asset.serial_number|default:"—" }}</td></tr>
+                    <tr>
+                        <th>Сотрудник</th>
+                        <td>{% if asset.assigned_to %}{{ asset.assigned_to.full_name }}{% else %}Склад{% endif %}</td>
+                    </tr>
+                    <tr>
+                        <th>Отдел</th>
+                        <td>{% if asset.assigned_to and asset.assigned_to.department %}{{ asset.assigned_to.department.name }}{% else %}—{% endif %}</td>
+                    </tr>
+                    <tr><th>Поступил</th><td>{{ asset.arrival_date|date:"d.m.Y"|default:"—" }}</td></tr>
+                    <tr><th>Гарантия до</th><td>{{ asset.warranty_end_date|date:"d.m.Y"|default:"—" }}</td></tr>
+                    <tr><th>Штрихкод</th><td>{{ asset.qr_code_id|default:"—" }}</td></tr>
+                </table>
+                {% if asset.notes %}
+                <div class="mt-3">
+                    <strong>Примечания:</strong>
+                    <div class="border rounded p-2 bg-light">{{ asset.notes|linebreaksbr }}</div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-6">
+        <div class="card h-100">
+            <div class="card-header bg-light">История заявок</div>
+            <div class="card-body p-0">
+                {% if tickets %}
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr><th>#</th><th>Тип</th><th>Статус</th><th>Дата</th></tr>
+                        </thead>
+                        <tbody>
+                            {% for ticket in tickets %}
+                            <tr class="position-relative">
+                                <td>
+                                    <a href="{% url 'ticket_detail' ticket.pk %}"
+                                       class="stretched-link fw-semibold">#{{ ticket.pk }}</a>
+                                </td>
+                                <td>{{ ticket.get_ticket_type_display }}</td>
+                                <td>
+                                    <span class="badge {{ ticket.get_status_badge_class }}">
+                                        {{ ticket.get_status_display }}
+                                    </span>
+                                </td>
+                                <td>{{ ticket.created_at|date:"d.m.Y" }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center text-muted py-4">Заявок по этому оборудованию не было</div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

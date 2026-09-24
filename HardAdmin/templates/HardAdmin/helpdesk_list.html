@@ -1,0 +1,138 @@
+{% extends "HardAdmin/base.html" %}
+{% block title %}HelpDesk — HardAdmin{% endblock %}
+
+{% block content %}
+<style>
+    tbody tr { cursor: pointer; }
+    tbody tr:hover { background-color: rgba(13, 110, 253, 0.06); }
+</style>
+
+
+<div class="row g-4">
+    <div class="col-lg-6">
+        <div class="card h-100 shadow-sm">
+            <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                <span>Новые заявки</span>
+                <span class="badge bg-white text-primary">{{ new_tickets|length }}</span>
+            </div>
+            <div class="card-body p-0">
+                {% if new_tickets %}
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>#</th>
+                                <th>Тип</th>
+                                <th>Тема</th>
+                                <th>Приоритет</th>
+                                <th>Заявитель</th>
+                                <th class="text-end">Действие</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for ticket in new_tickets %}
+                            <tr class="position-relative">
+                                <td>
+                                    <a href="{% url 'ticket_detail' ticket.pk %}"
+                                       class="stretched-link fw-semibold">#{{ ticket.id }}</a>
+                                </td>
+                                <td>
+                                    <span class="badge {% if ticket.ticket_type == 'checkout' %}bg-primary{% elif ticket.ticket_type == 'issue' %}bg-danger{% else %}bg-secondary{% endif %}">
+                                        {{ ticket.get_ticket_type_display }}
+                                    </span>
+                                </td>
+                                <td>
+                                    {{ ticket.subject }}
+                                    <br>
+                                    <small class="text-muted">{{ ticket.created_at|timesince }} назад</small>
+                                </td>
+                                <td>
+                                    <span class="badge {% if ticket.priority == 'critical' %}bg-danger{% elif ticket.priority == 'high' %}bg-warning text-dark{% elif ticket.priority == 'medium' %}bg-info text-dark{% else %}bg-secondary{% endif %}">
+                                        {{ ticket.get_priority_display }}
+                                    </span>
+                                </td>
+                                <td>{{ ticket.requester.full_name }}</td>
+                                <td class="text-end">
+                                    <a href="{% url 'ticket_assign' ticket.pk %}"
+                                       class="btn btn-sm btn-outline-primary position-relative"
+                                       style="z-index: 2;">Взять</a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center text-muted py-5">
+                    Новых заявок нет. Отличная работа!
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+
+    <div class="col-lg-6">
+        <div class="card h-100 shadow-sm">
+            <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
+                <span>Мои в работе</span>
+                <span class="badge bg-white text-success">{{ my_tickets|length }}</span>
+            </div>
+            <div class="card-body p-0">
+                {% if my_tickets %}
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>#</th>
+                                <th>Тип</th>
+                                <th>Тема</th>
+                                <th>Оборудование</th>
+                                <th class="text-end">Действие</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for ticket in my_tickets %}
+                            <tr class="position-relative">
+                                <td>
+                                    <a href="{% url 'ticket_detail' ticket.pk %}"
+                                       class="stretched-link fw-semibold">#{{ ticket.id }}</a>
+                                </td>
+                                <td>
+                                    <span class="badge {% if ticket.ticket_type == 'checkout' %}bg-primary{% elif ticket.ticket_type == 'issue' %}bg-danger{% else %}bg-secondary{% endif %}">
+                                        {{ ticket.get_ticket_type_display }}
+                                    </span>
+                                </td>
+                                <td>
+                                    {{ ticket.subject }}
+                                    <br>
+                                    <small class="text-muted">в работе {{ ticket.updated_at|timesince }}</small>
+                                </td>
+                                <td>
+                                    {% if ticket.asset %}
+                                        {{ ticket.asset }}
+                                    {% else %}
+                                        <span class="text-muted">—</span>
+                                    {% endif %}
+                                </td>
+                                <td class="text-end">
+                                    <a href="{% url 'ticket_resolve' ticket.pk %}"
+                                       class="btn btn-sm btn-outline-success position-relative"
+                                       style="z-index: 2;">Завершить</a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center text-muted py-5">
+                    Активных задач нет.
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

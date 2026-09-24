@@ -1,0 +1,44 @@
+{% extends "HardAdmin/base.html" %}
+{% block title %}Закрыть заявку #{{ ticket.pk }} — HardAdmin{% endblock %}
+{% block content %}
+<h2>Закрыть заявку #{{ ticket.pk }}</h2>
+<div class="card mb-4">
+    <div class="card-body">
+        <p><strong>Тип:</strong> {{ ticket.get_ticket_type_display }}</p>
+        <p><strong>Тема:</strong> {{ ticket.subject }}</p>
+        <p><strong>Заявитель:</strong> {{ ticket.requester.full_name }}</p>
+        <p><strong>Оборудование:</strong>
+            {% if ticket.asset %}{{ ticket.asset }}{% else %}Не указано{% endif %}
+        </p>
+    </div>
+</div>
+<div class="card">
+    <div class="card-header bg-light">Результат работы</div>
+    <div class="card-body">
+        <form method="post">
+            {% csrf_token %}
+            {% if form.non_field_errors %}
+                <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+            {% endif %}
+            <div class="mb-3">
+                <label class="form-label">{{ form.result.label }}</label>
+                {{ form.result }}
+            </div>
+            {% if ticket.ticket_type == 'issue' and ticket.asset %}
+                <div class="mb-3 p-3 border rounded bg-light">
+                    <div class="form-check">
+                        {{ form.is_working }}
+                        <label class="form-check-label" for="{{ form.is_working.id_for_label }}">
+                            {{ form.is_working.label }}
+                        </label>
+                    </div>
+                </div>
+            {% else %}
+                {{ form.is_working }}
+            {% endif %}
+            <button type="submit" class="btn btn-success">Закрыть заявку</button>
+            <a href="{% url 'helpdesk_list' %}" class="btn btn-outline-secondary">Отмена</a>
+        </form>
+    </div>
+</div>
+{% endblock %}
