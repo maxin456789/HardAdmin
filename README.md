@@ -1,3 +1,4 @@
+[![tests](https://github.com/maxin456789/HardAdmin/actions/workflows/tests.yml/badge.svg)](https://github.com/maxin456789/HardAdmin/actions/workflows/tests.yml)
 # HardAdmin
 
 Внутренний сервис для IT-отдела. Ведёт учёт оборудования
